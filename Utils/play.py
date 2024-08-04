@@ -1,3 +1,4 @@
+#import gymnasium as gym
 import gym
 import numpy as np
 from Utils import make_state, make_atari

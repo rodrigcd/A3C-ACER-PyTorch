@@ -1,4 +1,5 @@
 import numpy as np
+#import gymnasium as gym
 import gym
 
 
@@ -17,9 +18,8 @@ def make_atari(env_id, episodic_life=True, seed=123):
 
     np.random.seed(seed)
     env.seed(seed)
-    env.observation_space.np_random.seed(seed)
-    env.action_space.np_random.seed(seed)
-
+    #env.observation_space.np_random.seed(seed)
+    #env.action_space.np_random.seed(seed)
     return env
 
 
@@ -36,22 +36,26 @@ class NoopResetEnv(gym.Wrapper):
         noops = np.random.randint(1, self.noop_max + 1)
         obs = None
         for _ in range(noops):
-            obs, _, done, _ = self.env.step(self.noop_action)
+            # info = self.env.step(self.noop_action)
+            obs, _, done, _, _ = self.env.step(self.noop_action)
             if done:
                 obs = self.env.reset()
         return obs
 
     def get_rng_state(self):
-        env_rng = self.env.np_random.get_state()
-        env_obs_rng = self.env.observation_space.np_random.get_state()
-        env_ac_rng = self.env.action_space.np_random.get_state()
+        env_rng = self.env.np_random#.get_state()
+        env_obs_rng = self.env.observation_space.np_random#.get_state()
+        env_ac_rng = self.env.action_space.np_random#.get_state()
         return np.random.get_state(), env_rng, env_obs_rng, env_ac_rng
 
     def set_rng_state(self, *state):
         np.random.set_state(state[0])
-        self.env.np_random.set_state(state[1])
-        self.env.observation_space.np_random.set_state(state[2])
-        self.env.action_space.np_random.set_state(state[3])
+        # self.env.np_random.set_state(state[1])
+        # self.env.observation_space.np_random.set_state(state[2])
+        # self.env.action_space.np_random.set_state(state[3])
+        self.env.np_random = state[1]
+        self.env.observation_space.np_random = state[2]
+        self.env.action_space.np_random = state[3]
 
 
 class MaxAndSkipEnv(gym.Wrapper):
@@ -65,7 +69,7 @@ class MaxAndSkipEnv(gym.Wrapper):
         reward = 0
         done = None
         for i in range(self.skip):
-            obs, r, done, info = self.env.step(action)
+            obs, r, done, trunc, info = self.env.step(action)
 
             if i == self.skip - 2:
                 self.obs_buffer[0] = obs
@@ -90,7 +94,7 @@ class EpisodicLifeEnv(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         self.real_done = done
 
-        lives = info["ale.lives"]
+        lives = info["lives"]
         if self.lives > lives > 0:
             done = True
 
@@ -102,7 +106,7 @@ class EpisodicLifeEnv(gym.Wrapper):
         if self.real_done:
             obs = self.env.reset()
         else:
-            obs, _, _, _ = self.env.step(0)
+            obs, _, _, _, _ = self.env.step(0)
         self.lives = self.env.unwrapped.ale.lives()
         return obs
 

@@ -15,9 +15,9 @@ import numpy as np
 
 if __name__ == "__main__":
     with open("training_configs.yml") as f:
-        params = yaml.load(f.read())
+        params = yaml.safe_load(f.read())
 
-    params.update({"n_workers": os.cpu_count()})
+    # params.update({"n_workers": os.cpu_count()})
     params.update({"mem_size": int(params["total_memory_size"]) // params["n_workers"] // params["k"]})
     if not isinstance(params["state_shape"], tuple):
         params["state_shape"] = tuple(params["state_shape"])
